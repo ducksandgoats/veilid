@@ -3,7 +3,7 @@ import os
 import signal
 import sys
 from http.server import BaseHTTPRequestHandler
-from veilid.json_api import json_api_connect_ipc
+from veilid import api_connector
 from veilid.types import TypedKey, ValueSubkey
 import socketserver
 import argparse
@@ -38,21 +38,6 @@ def get_cached_response(dht_key, path, query):
     return cached_value
 
 
-
-# IPC Path for Veilid
-IPC_PATH = os.getenv("VEILID_SERVER_IPC")
-if IPC_PATH is None:
-    if os.name == "nt":
-        IPC_PATH = "\\\\.\\PIPE\\veilid-server\\0"
-    elif os.name == "posix":
-        if 'linux' in os.uname().sysname.lower():
-            IPC_PATH = "/var/db/veilid-server/ipc/0"
-        elif 'darwin' in os.uname().sysname.lower():
-            IPC_PATH = os.path.expanduser(f"~/Library/Application Support/org.Veilid.Veilid/ipc/0")
-        else:
-            raise OSError("Unsupported POSIX operating system")
-    else:
-        raise OSError("Unsupported operating system")
 proxy_server = None
 
 parser = argparse.ArgumentParser(
@@ -205,7 +190,7 @@ class VeilidProxyHandler(BaseHTTPRequestHandler):
 
         try:
             # Connect to Veilid
-            api = await json_api_connect_ipc(IPC_PATH, self.veilid_callback)
+            api = await api_connector(self.veilid_callback)
             async with await api.new_routing_context() as rc:
                 print(f"[Proxy] Opening DHT record: {dht_key}")
                 await rc.open_dht_record(TypedKey(dht_key))
