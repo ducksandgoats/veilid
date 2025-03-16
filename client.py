@@ -16,19 +16,19 @@ import diskcache as dc
 # Initialize the cache (stored on disk)
 cache = dc.Cache("./proxy_cache")  # Change the path if needed
 
-def get_cache_key(path, query):
+def get_cache_key(dht_key, path, query):
     """Generate a unique cache key based on the request path and query."""
-    cache_key = hashlib.sha256(f"{path}?{query}".encode()).hexdigest()
+    cache_key = hashlib.sha256(f"{dht_key}?{path}?{query}".encode()).hexdigest()
     return cache_key
 
-def cache_response(path, query, response_bytes, expiration=3600):
+def cache_response(dht_key, path, query, response_bytes, expiration=3600):
     """Store the raw response in cache with a defined expiration time."""
-    cache_key = get_cache_key(path, query)
+    cache_key = get_cache_key(dht_key, path, query)
     cache.set(cache_key, response_bytes, expire=expiration)  # Store as raw bytes
 
-def get_cached_response(path, query):
+def get_cached_response(dht_key, path, query):
     """Retrieve cached response as raw bytes if available."""
-    cache_key = get_cache_key(path, query)
+    cache_key = get_cache_key(dht_key, path, query)
     cached_value = cache.get(cache_key, None)
     
     # Ensure we return bytes, not hex
@@ -182,9 +182,9 @@ class VeilidProxyHandler(BaseHTTPRequestHandler):
         if path == "/":
             path = "/index.html"
 
-        cached_response = get_cached_response(path, query)
+        cached_response = get_cached_response(dht_key, path, query)
         if cached_response:
-            print(f"[Cache] Serving cached response for {path}?{query}")
+            print(f"[Cache] Serving cached response for {dht_key}?{path}?{query}")
             self.decode_response(cached_response, path)
             return  # Serve cached response and exit
 
@@ -234,7 +234,7 @@ class VeilidProxyHandler(BaseHTTPRequestHandler):
                     response_bytes = await rc.app_call(server_route_id, request_bytes)
 
                     # Cache the response before sending
-                    cache_response(path, query, response_bytes, expiration=3600)  # Cache for 1 hour
+                    cache_response(dht_key, path, query, response_bytes, expiration=3600)  # Cache for 1 hour
                     # Try to parse the response as a dictionary
                     try:
                         response = self.decode_response(response_bytes, path)
