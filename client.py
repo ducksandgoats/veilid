@@ -169,9 +169,6 @@ class VeilidProxyHandler(BaseHTTPRequestHandler):
     async def handle_request(self, head_only=False, body=None):
         """Handle all types of HTTP requests through Veilid"""
         dht_key = self.headers.get("X-Iden", "")
-        if dht_key == "":
-            self.send_error_response(400, error_msg = f"Header must have the X-Iden key with the DHT key as the value")
-            return
 
         # Parse the URL to extract path and query parameters
         parsed_url = urllib.parse.urlparse(self.path)
