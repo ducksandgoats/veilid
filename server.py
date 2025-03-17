@@ -5,7 +5,7 @@ import sys
 import json
 import urllib.parse
 import mimetypes
-from veilid.json_api import json_api_connect_ipc
+from veilid import api_connector
 from veilid.types import ValueSubkey, TypedKey, DHTSchema
 import threading
 import argparse
@@ -19,22 +19,6 @@ SERVER_API = None
 CURRENT_ROUTE_ID = None
 CURRENT_ROUTE_BLOB = None
 CURRENT_RECORD_KEY = None
-
-
-IPC_PATH = os.getenv("VEILID_SERVER_IPC")
-if IPC_PATH is None:
-    if os.name == "nt":
-        IPC_PATH = "\\\\.\\PIPE\\veilid-server\\0"
-    elif os.name == "posix":
-        if 'linux' in os.uname().sysname.lower():
-            IPC_PATH = "/var/db/veilid-server/ipc/0"
-        elif 'darwin' in os.uname().sysname.lower():
-            IPC_PATH = os.path.expanduser(f"~/Library/Application Support/org.Veilid.Veilid/ipc/0")
-        else:
-            raise OSError("Unsupported POSIX operating system")
-    else:
-        raise OSError("Unsupported operating system")
-
 
 parser = argparse.ArgumentParser(description="Run a web server over Veilid.")
 parser.add_argument(
@@ -267,7 +251,7 @@ async def start_veilid_server():
             )
 
     # Connect to Veilid API
-    SERVER_API = await json_api_connect_ipc(IPC_PATH, veilid_callback)
+    SERVER_API = await api_connector(veilid_callback)
 
     # Set up DHT record and route
     if args.dht_key:
