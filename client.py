@@ -153,7 +153,7 @@ class VeilidProxyHandler(BaseHTTPRequestHandler):
 
     async def handle_request(self, head_only=False, body=None):
         """Handle all types of HTTP requests through Veilid"""
-        dht_key = self.headers.get("X-Iden", "")
+        dht_key = self.headers.get("X-id", "")
 
         # Parse the URL to extract path and query parameters
         parsed_url = urllib.parse.urlparse(self.path)
