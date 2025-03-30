@@ -10,4 +10,4 @@ wheels/
 .venv
 
 # Cache
-# proxy_cache
+proxy_cache
