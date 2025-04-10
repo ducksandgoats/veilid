@@ -132,18 +132,27 @@ class VeilidProxyHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Handle HTTP GET requests"""
-        asyncio.run(self.handle_request())
+        try:
+            asyncio.run(self.handle_request())
+        except Exception as e:
+            self.send_error_response(500, str(e))
 
     def do_HEAD(self):
         """Handle HTTP HEAD requests"""
-        asyncio.run(self.handle_request(head_only=True))
+        try:
+            asyncio.run(self.handle_request(head_only=True))
+        except Exception as e:
+            self.send_error_response(500, str(e))
 
     def do_POST(self):
         """Handle HTTP POST requests"""
         # Read the request body
         content_length = int(self.headers.get("Content-Length", 0))
         post_data = self.rfile.read(content_length) if content_length > 0 else None
-        asyncio.run(self.handle_request(body=post_data))
+        try:
+            asyncio.run(self.handle_request(body=post_data))
+        except Exception as e:
+            self.send_error_response(500, str(e))
 
     async def veilid_callback(self, update):
         """Handle Veilid callbacks"""
